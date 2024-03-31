@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <link rel="stylesheet" href="<%= BASE_URL %>css/base.css">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+  </head>
+  <body>
+    <noscript>
+      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <div id="app">
+      <div id="loading" class="base-loading">
+        <img class="image" src="<%= BASE_URL %>images/loading.png" />
+      </div>
+      <div id="error" class="errmsg" style="display: none">
+        <img class="errmsg-error" src="<%= BASE_URL %>images/error.png" alt="" />
+        <div id="errmsg-text" class="errmsg-text">刷新后尝试获取数据</div>
+        <button id="errmsg-shuaXin" class="btn btn--primary is-plain">刷新</button>
+        <button id="errmsg-tuiChu" class="btn btn--primary">退出</button>
+      </div>
+    </div>
+    <!-- built files will be auto injected -->
+  </body>
+</html>
