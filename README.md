@@ -1,19 +1,7 @@
-# admin-base
+# 基于单点登录的中后台管理系统权限相关控制
 
-## Project setup
-```
-npm install
-```
+## 演示项目采用 vue 2.x vue-router 3.x  
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+## [代码地址](https://github.com/heyuming1118/vue2-admin-app)
 
-### Compiles and minifies for production
-```
-npm run build
-```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
