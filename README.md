@@ -2,6 +2,6 @@
 
 ## 演示项目采用 vue 2.x vue-router 3.x  
 
-## [代码地址](https://github.com/heyuming1118/vue2-admin-app)
+## [代码地址](https://github.com/heyuming1118/vue2-admin-app)https://github.com/heyuming1118/vue2-admin-app
 
 
