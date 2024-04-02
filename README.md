@@ -1,7 +1,7 @@
 # 基于单点登录的中后台管理系统权限相关控制
 
 演示项目采用 vue 2.x vue-router 3.x  
-[代码地址：https://github.com/heyuming1118/vue2-admin-app](https://github.com/heyuming1118/vue2-admin-app)
+*[代码地址：https://github.com/heyuming1118/vue2-admin-app](https://github.com/heyuming1118/vue2-admin-app)*
 
 ## 单点登陆
 单点登录英文全称Single Sign On，简称SSO。
@@ -278,7 +278,7 @@ const app = new Vue({
   render: h => h(App)
 })
 ```
-[进入**router/index2.js**](./src/router/index2.js)
+***[进入router/index2.js](./src/router/index2.js)***
 
 也可以采用传统做法，也是现在主流做法
 在 `router/routes`文件夹下定义好所有路由，根据数据权限生成权限列表，然后再路由守卫进行拦截
