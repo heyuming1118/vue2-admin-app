@@ -87,7 +87,7 @@ A --> |5.同子系统A| E{子系统B}
 > 现在市面上开源的框架一般都是在 new Vue() 之前，也就是程序运行之前。
 > 因为如果程序开始运行，就会有部分页面开始渲染。而获取用户信息是需要时间的，等获取到结果后再去判断权限跳转登出或者403页面，这样的体验不是很好
 
-- 可以将new Vue() 操作，放入一个函数中，等待所有权限全部就位之后，再开始运行。就像这样
+可以将new Vue() 操作，放入一个函数中，等待所有权限全部就位之后，再开始运行。就像这样
   ```js
   function setup({ user, token, menu }) {
     store.dispatch('user/setUser', user)
@@ -130,10 +130,157 @@ A --> |5.同子系统A| E{子系统B}
   ```
 这样就可以确保程序运行时，是一定有权限了
   
-> 这里有两个问题不得考虑：
-> 1.`auth`执行时需要时间的，而这段时间内因为app没有渲染挂载，页面是一直白屏的。
-> 2.调用接口有可能会报错，报错了应该如何处理？
+ 这里有两个问题不得考虑：
+ 1.`auth`执行时需要时间的，而这段时间内因为app没有渲染挂载，页面是一直白屏的。
+ 2.调用接口有可能会报错，报错了应该如何处理？
 
+ 先来解决第一个问题。
+ 首先是在`auth`中尽量减少接口调用，只拿必要的信息，比如用户信息，页面权限
+ 第二是在白屏是开启loading动画等待，loading动画写在 `/public/index.html`中,相关的样式，也要预先写在 `/public/css`下
+ 
+ ```html
+  <div id="app">
+    <div id="loading" class="base-loading">
+      <img class="image" src="<%= BASE_URL %>images/loading.png" />
+    </div>
+  </div>
+```
+
+> 这里的逻辑，可以不用额外处理， `app.$mount` 时会将这里面的内容替换掉
+
+第二个问题，解决获取用户信息报错
+这里的逻辑需根据业务来确认，一般来说，可以做一个错误页面，给用户提供两个选择：重新获取，推出登录。这个页面也需要提前写到`/public/index.html`中
+ ```html
+  <div id="app">
+    <div id="error" class="errmsg" style="display: none">
+     <img class="errmsg-error" src="<%= BASE_URL %>images/error.png" alt="" />
+     <div id="errmsg-text" class="errmsg-text">刷新后尝试获取数据</div>
+     <button id="errmsg-shuaXin" class="btn btn--primary is-plain">刷新</button>
+     <button id="errmsg-tuiChu" class="btn btn--primary">退出</button>
+   </div>
+  </div>
+```
+按钮操作逻辑我放在`/src/lib/portal.js`中
+在 `main.js` 中去捕获错误
+```js
+import { onAppErrorBoundary } from './lib/portal'
+try {
+  auth().then(setup)
+} catch (error) {
+  onAppErrorBoundary(error)
+}
+```
+
+### 页面权限
+一般进入页面有两种方式：通过菜单点击进入，直接在地址栏输入url进入。
+针对这两种方式处理起来也有不同，一是没有权限的页面不生成菜单，用户无法通过点击进入，二是在路由守卫 `beforeEach`中拦截
+
+大部分后台系统都会做菜单管理页面，方便IT人员管理菜单
+在`/src/api/sys.mock.js`中模拟了一下后端根据权限返回的菜单数据，有返回，代表就是有该页面权限。并且在 `main.js`中存放到 *vuex*中
+
+- 根据数据生成菜单。主要关注 `/src/Layout`中的侧边栏组件,这里用的是el的aside组件
+
+```vue
+<!--src/Layout/components/AppAside.vue-->
+<template>
+  <el-aside width="200px" class="app-aside">
+    <el-menu :default-active="$route.path" @select="handleSelect">
+      <AppAsideMenuList :menuList="menus"></AppAsideMenuList>
+    </el-menu>
+  </el-aside>
+</template>
+
+<script>
+import { httpReq } from "@/utils/constants";
+import { mapGetters } from "vuex";
+
+import AppAsideMenuList from "./AppAsideMenuList.vue";
+export default {
+  name: "AppAside",
+
+  components: {
+    AppAsideMenuList,
+  },
+
+  computed: {
+    ...mapGetters("app", ["menus"]),
+  },
+
+  methods: {
+    handleSelect(path) {
+      if (httpReq.test(path)) {
+        return window.open(path);
+      }
+      this.$router.push(path);
+    },
+  },
+};
+</script>
+```
+- 菜单一般是一个树形结构，子组件可以单独封装成递归组件 *这里没有很复杂的交互逻辑,做成函数组件可以优化性能*
+
+```vue
+<script>
+export default {
+  name: "AppAsideMenuList",
+  functional: true,
+  render(h, { props }) {
+    const { menuList } = props;
+    const el = menuList.map((item) => {
+      // 如果有子级
+      if (item.children && item.children.length) {
+        const child = [];
+        item.icon && child.push(h("i", { class: item.icon }));
+        child.push(h("span", item.title));
+
+        return h(
+          "el-submenu",
+          { props: { index: item.id, key: item.id } },
+          [
+            h("span", { slot: "title" }, child),
+            // 递归组件
+            h("AppAsideMenuList", { props: { menuList: item.children } }),
+          ]
+        );
+      } else {
+        const child = [];
+        item.icon && child.push(h("i", { class: item.icon }));
+        child.push(h("span", { slot: "title" }, item.title));
+
+        return h(
+          "el-menu-item",
+          { props: { index: item.path, key: item.id } },
+          child
+        );
+      }
+    });
+    return el;
+  },
+};
+</script>
+```
+- 路由守卫拦截
+路由拦截有两种做法,一种是比较激进的,完全根据权限数据生成路由。
+这样的做法好处是,无须路由拦截,没有权限,就没有该路由,也不开发人员在routes中定义路由。
+这需要菜单管理页面考虑更细致，路由所需字段全部在页面中可配置，需要和开发人员约定好页面目录结构。
+
+这里主要关注 `main2.js``router/index2.js`的做法
+
+```js
+// main2.js
+import { getRouter } from './router/index2.js'
+
+const app = new Vue({
+  router: getRouter(menu),//动态生成路由
+  store,
+  render: h => h(App)
+})
+```
+[`router/index2.js`](./src/router/index2.js)
+
+
+
+  
   
 
 
