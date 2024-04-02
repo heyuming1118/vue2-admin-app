@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
 import store from './store'
-import router from './router'
+import {getRouter} from './router/index2.js'
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import 'normalize.css'
@@ -27,7 +27,7 @@ function setup({ user, token, menu }) {
   store.dispatch('app/setmenus', menu)
 
   const app = new Vue({
-    router,
+    router:getRouter(),
     store,
     render: h => h(App)
   })
