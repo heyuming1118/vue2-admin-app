@@ -363,6 +363,11 @@ export default router
 - vue自定义指令：使用指令传入权限规则，没有权限则从父节点中删除该元素 
 - 函数式组件：通过props传入权限规则，没有权限则不渲染该节点
 
+  常规做法是在全局注册自定义指令 ***[查看自定义指令](./src/directives/permission.js)***
+  ```vue
+  <el-button v-permission="['超级管理员','管理员']">新增</el-button>
+  ```
+
 
 
   
