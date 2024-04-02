@@ -260,7 +260,9 @@ export default {
 </script>
 ```
 - 路由守卫拦截
-路由拦截有两种做法,一种是比较激进的,完全根据权限数据生成路由。
+路由拦截有两种做法
+
+比较激进的,完全根据权限数据生成路由。
 这样的做法好处是,无须路由拦截,没有权限,就没有该路由,也不开发人员在routes中定义路由。
 这需要菜单管理页面考虑更细致，路由所需字段全部在页面中可配置，需要和开发人员约定好页面目录结构。
 
@@ -276,7 +278,90 @@ const app = new Vue({
   render: h => h(App)
 })
 ```
-[`router/index2.js`](./src/router/index2.js)
+[进入**router/index2.js**](./src/router/index2.js)
+
+也可以采用传统做法，也是现在主流做法
+在 `router/routes`文件夹下定义好所有路由，根据数据权限生成权限列表，然后再路由守卫进行拦截
+
+这里主要关注`main.js``router/index.js`和`store/modules/app.js`的做法
+```js
+//store/modules/app.js
+//在vuex中保存一个路由权限映射表
+SET_PERMISSION_MEUN(state,data = []){
+   const permissionMenu = {}
+   const findTreeNode = (data)=>{
+       data.forEach(item=>{
+           if(!item.children || !item.children.length){
+               //赋值一个空对象，如果需要可以保存一些信息
+               permissionMenu[item.path] = {}
+           }else{
+               findTreeNode(item.children)
+           }
+       })
+   }
+   findTreeNode(data)
+   state.permissionMenu = permissionMenu
+}
+```
+```js
+// router/index.js
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+import store from '@/store'
+
+Vue.use(VueRouter)
+
+// 读取 routes 下所有文件
+const routeFile = require.context('./routes', true, /\.js/)
+const routes = [
+    ...routeFile.keys().reduce((routes, file) => routes.concat(routeFile(file).default), []),
+    {
+        path: '/error/:code',
+        name: 'ErrorPage',
+        component: () => import('@/views/error'),
+        meta: {
+            title: '出错啦！'
+        }
+    },
+    {
+        path: '*',
+        redirect: '/error/404'
+    },
+]
+const router = new VueRouter({
+    routes,
+    scrollBehavior(to, from, savedPosition) {
+        if (savedPosition) return savedPosition
+        // 始终滚动到顶部
+        return { y: 0 }
+    },
+})
+
+router.beforeEach((to, from, next) => {
+    // if (to.meta.roles && to.meta.roles.length) {
+    //     if (!to.meta.roles.includes(store.state.user.role)) {
+    //         return next('/error/403')
+    //     }
+    // }
+    // 错误页面直接放行
+    if (to.path.includes('error')) return next()
+    // 拦截不在权限列表中的页面
+    if (!(to.path in store.state.app.permissionMenu)) return next('/error/403')
+    next()
+})
+
+router.afterEach((to, from) => {
+    document.title = to.meta.title || 'admin'
+})
+
+export default router
+```
+
+### 按钮权限
+
+- 按钮权限主流一般有两种做法
+- vue自定义指令：使用指令传入权限规则，没有权限则从父节点中删除该元素 
+- 函数式组件：通过props传入权限规则，没有权限则不渲染该节点
 
 
 
