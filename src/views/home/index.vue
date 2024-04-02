@@ -9,6 +9,9 @@
     <hr />
     <div>
       <el-button v-permission="['超级管理员', '管理员']"> 新增 </el-button>
+      <Permission :rule="['超级管理员', '管理员']">
+        <el-button> 删除 </el-button>
+      </Permission>
     </div>
   </div>
 </template>
@@ -23,7 +26,6 @@ export default {
   },
   methods: {
     radioChange(data) {
-      console.log(data)
       this.$store.dispatch("user/setRole", data);
     },
   },

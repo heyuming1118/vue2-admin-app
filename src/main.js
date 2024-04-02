@@ -3,19 +3,23 @@ import App from './App.vue'
 import store from './store'
 import router from './router'
 import ElementUI from 'element-ui';
-import Directives from './directives';
 import 'element-ui/lib/theme-chalk/index.css';
 import 'normalize.css'
-import './api/sys.mock'; // 引入Mock.js配置文件
+// 引入Mock.js配置文件
+import './api/sys.mock'; 
 
 import { auth } from './lib/auth'
 import { onAppErrorBoundary } from './lib/portal'
 import { getRoles } from '@/api/sys'
 
+import Directives from './directives';
+import Components from './components';
+
 Vue.config.productionTip = false
 
 Vue.use(ElementUI)
 Vue.use(Directives)
+Vue.use(Components)
 
 try {
   auth().then(setup)
