@@ -278,7 +278,7 @@ const app = new Vue({
   render: h => h(App)
 })
 ```
-***[进入router/index2.js](./src/router/index2.js)***
+***[查看 router/index2.js](./src/router/index2.js)***
 
 也可以采用传统做法，也是现在主流做法
 在 `router/routes`文件夹下定义好所有路由，根据数据权限生成权限列表，然后再路由守卫进行拦截
@@ -367,6 +367,15 @@ export default router
   ```vue
   <el-button v-permission="['超级管理员','管理员']">新增</el-button>
   ```
+> 我个人不是很推荐这种方式，主要有两个缺点：一是现代框架都是数据驱动，应该减少DOM操作，二是，在权限获取慢时，按钮会在页面中显示，然后才移除。如果有可切换角色权限时需要加回按钮时，会比较困难
+
+  推荐做法是封装成函数式组件 ***[查看函数式组件](./src/components/Permission.vue)***
+  ```vue
+  <Permission :rule="['超级管理员', '管理员']">
+    <el-button> 新增 </el-button>
+  </Permission>
+  ```
+> 用法没有变复杂，暂时也没有副作用
 
 
 
