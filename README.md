@@ -283,79 +283,8 @@ const app = new Vue({
 也可以采用传统做法，也是现在主流做法
 在 `router/routes`文件夹下定义好所有路由，根据数据权限生成权限列表，然后再路由守卫进行拦截
 
-这里主要关注`main.js``router/index.js`和`store/modules/app.js`的做法
-```js
-//store/modules/app.js
-//在vuex中保存一个路由权限映射表
-SET_PERMISSION_MEUN(state,data = []){
-   const permissionMenu = {}
-   const findTreeNode = (data)=>{
-       data.forEach(item=>{
-           if(!item.children || !item.children.length){
-               //赋值一个空对象，如果需要可以保存一些信息
-               permissionMenu[item.path] = {}
-           }else{
-               findTreeNode(item.children)
-           }
-       })
-   }
-   findTreeNode(data)
-   state.permissionMenu = permissionMenu
-}
-```
-```js
-// router/index.js
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import store from '@/store'
+这里主要关注[main.js](./src/main.js),[router/index.js](./src/router/index.js)和[store/modules/app.js](.src/store/modules/app.js)的做法
 
-Vue.use(VueRouter)
-
-// 读取 routes 下所有文件
-const routeFile = require.context('./routes', true, /\.js/)
-const routes = [
-    ...routeFile.keys().reduce((routes, file) => routes.concat(routeFile(file).default), []),
-    {
-        path: '/error/:code',
-        name: 'ErrorPage',
-        component: () => import('@/views/error'),
-        meta: {
-            title: '出错啦！'
-        }
-    },
-    {
-        path: '*',
-        redirect: '/error/404'
-    },
-]
-const router = new VueRouter({
-    routes,
-    scrollBehavior(to, from, savedPosition) {
-        if (savedPosition) return savedPosition
-        // 始终滚动到顶部
-        return { y: 0 }
-    },
-})
-
-router.beforeEach((to, from, next) => {
-    // if (to.meta.roles && to.meta.roles.length) {
-    //     if (!to.meta.roles.includes(store.state.user.role)) {
-    //         return next('/error/403')
-    //     }
-    // }
-    // 错误页面直接放行
-    if (to.path.includes('error')) return next()
-    // 拦截不在权限列表中的页面
-    if (!(to.path in store.state.app.permissionMenu)) return next('/error/403')
-    next()
-})
-
-router.afterEach((to, from) => {
-    document.title = to.meta.title || 'admin'
-})
-
-export default router
-```
 
 ### 按钮权限
 
