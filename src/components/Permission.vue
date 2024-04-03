@@ -12,7 +12,7 @@ export default {
     } else if (typeof rule === "function") {
       hasPermission = rule(role);
     } else {
-      throw new Error("错误：v-permission 指令的参数是一个数组或函数");
+      throw new Error("错误：rule 接收一个数组或函数");
     }
     if (!hasPermission) return null;
     return children;
